@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"> <!-- document character encoding -->
+  <meta name="viewport" content="width=device-width,initial-scale=1"> <!-- responsive on mobile -->
+  <title>Make Appointment</title> <!-- page title -->
+  <style>
+    /* tiny styling to make the form readable */
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    label { display:block; margin-top:10px; }
+    input, textarea { width: 100%; padding:8px; box-sizing: border-box; }
+    button { margin-top:12px; padding:10px 16px; }
+  </style>
+</head>
+<body>
+  <h1>Book an Appointment</h1> <!-- page heading -->
+
+  <!-- the form collects appointment data -->
+  <form id="appointmentForm"> <!-- form element with id to access in JS -->
+    <label for="name">Name</label> <!-- label for name input -->
+    <input id="name" name="name" type="text" placeholder="Full name" required> <!-- name input -->
+
+    <label for="email">Email</label> <!-- label for email input -->
+    <input id="email" name="email" type="email" placeholder="you@example.com" required> <!-- email input -->
+
+    <label for="address">Address</label> <!-- label for address input -->
+    <input id="address" name="address" type="text" placeholder="Street, City" required> <!-- address input -->
+
+    <label for="phone">Phone</label> <!-- label for phone input -->
+    <input id="phone" name="phone" type="tel" placeholder="+1 555 555 5555" required> <!-- phone input -->
+
+    <label for="notes">Notes (optional)</label> <!-- optional notes -->
+    <textarea id="notes" name="notes" rows="3" placeholder="Any extra details"></textarea> <!-- notes textarea -->
+
+    <button type="submit">Save & Go to Dashboard</button> <!-- submit button -->
+  </form>
+
+  <script>
+    // get a reference to the form element by id
+    const form = document.getElementById('appointmentForm'); // fetch the form DOM node
+
+    // add a submit event listener to intercept the default form submission
+    form.addEventListener('submit', function(event) { // when user clicks the submit button
+      event.preventDefault(); // prevent page reload / default form post behavior
+
+      // collect values from the form inputs by their ids
+      const name  = document.getElementById('name').value.trim(); // get and trim name
+      const email = document.getElementById('email').value.trim(); // get and trim email
+      const address = document.getElementById('address').value.trim(); // get and trim address
+      const phone = document.getElementById('phone').value.trim(); // get and trim phone
+      const notes = document.getElementById('notes').value.trim(); // get and trim notes
+
+      // simple front-end validation: ensure required fields are non-empty
+      if (!name || !email || !address || !phone) { // check required fields
+        alert('Please fill in all required fields (name, email, address, phone).'); // notify user
+        return; // stop submission handling
+      }
+
+      // create an appointment object to store
+      const appointment = { // build an object with the appointment data
+        id: Date.now(), // unique id using timestamp
+        name: name, // store name
+        email: email, // store email
+        address: address, // store address
+        phone: phone, // store phone
+        notes: notes, // store notes
+        createdAt: new Date().toISOString() // timestamp when created
+      };
+
+      // read existing appointments from localStorage (if any)
+      const existing = localStorage.getItem('appointments'); // get stored string or null
+      const appointments = existing ? JSON.parse(existing) : []; // parse JSON or start empty array
+
+      // add the new appointment to the array
+      appointments.push(appointment); // append appointment object
+
+      // save the updated array back into localStorage as JSON string
+      localStorage.setItem('appointments', JSON.stringify(appointments)); // persist to browser storage
+
+      // optionally clear the form inputs after saving
+      form.reset(); // reset all form fields to empty / defaults
+
+      // navigate to dashboard_appointment.html to view saved appointments
+      window.location.href = 'dashboard_appointment.html'; // redirect browser
+    });
+  </script>
+</body>
+</html>

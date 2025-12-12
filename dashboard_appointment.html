@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"> <!-- encoding -->
+  <meta name="viewport" content="width=device-width,initial-scale=1"> <!-- responsive -->
+  <title>Appointment Dashboard</title> <!-- title shown in tab -->
+  <style>
+    /* small styles for table and buttons */
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { width:100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #f4f4f4; }
+    .actions button { margin-right:6px; }
+    .topbar { display:flex; gap:12px; align-items:center; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>Appointments</h1> <!-- main heading -->
+    <button id="backBtn">New Appointment</button> <!-- button to go back to creation page -->
+    <button id="clearBtn">Clear All</button> <!-- button to remove all appointments -->
+  </div>
+
+  <!-- message shown when no appointments exist -->
+  <p id="emptyMessage" style="display:none;">No appointments yet. Create one from the "New Appointment" button.</p>
+
+  <!-- table that will be filled with JS -->
+  <table id="appointmentsTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Address</th>
+        <th>Phone</th>
+        <th>Notes</th>
+        <th>Created At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="appointmentsBody">
+      <!-- rows will be inserted here by JS -->
+    </tbody>
+  </table>
+
+  <script>
+    // get elements references to interact with the DOM
+    const appointmentsTable = document.getElementById('appointmentsTable'); // table element
+    const appointmentsBody  = document.getElementById('appointmentsBody'); // tbody where rows go
+    const emptyMessage = document.getElementById('emptyMessage'); // message element
+    const backBtn = document.getElementById('backBtn'); // button to go back
+    const clearBtn = document.getElementById('clearBtn'); // clear all button
+
+    // function to format ISO timestamp into readable string
+    function formatDate(iso) { // takes ISO string
+      const d = new Date(iso); // construct Date
+      return d.toLocaleString(); // return locale-specific string
+    }
+
+    // function that renders appointments from localStorage into the table
+    function renderAppointments() { // no args, reads from localStorage
+      // get the stored appointments JSON from localStorage
+      const stored = localStorage.getItem('appointments'); // retrieve string or null
+      const appointments = stored ? JSON.parse(stored) : []; // parse or empty array
+
+      // clear current table body before re-populating
+      appointmentsBody.innerHTML = ''; // empty tbody
+
+      // if there are no appointments, show empty message and hide table
+      if (appointments.length === 0) { // check length
+        appointmentsTable.style.display = 'none'; // hide table
+        emptyMessage.style.display = 'block'; // show no-data message
+        return; // nothing else to render
+      }
+
+      // otherwise, show table and hide empty message
+      appointmentsTable.style.display = ''; // show table
+      emptyMessage.style.display = 'none'; // hide message
+
+      // create a table row for each appointment object
+      appointments.forEach(function(appt) { // iterate appointments
+        const tr = document.createElement('tr'); // create row element
+
+        // create cells and fill with appointment data
+        tr.innerHTML = `
+          <td>${appt.id}</td> <!-- id cell -->
+          <td>${escapeHtml(appt.name)}</td> <!-- name cell -->
+          <td>${escapeHtml(appt.email)}</td> <!-- email cell -->
+          <td>${escapeHtml(appt.address)}</td> <!-- address cell -->
+          <td>${escapeHtml(appt.phone)}</td> <!-- phone cell -->
+          <td>${escapeHtml(appt.notes)}</td> <!-- notes cell -->
+          <td>${formatDate(appt.createdAt)}</td> <!-- created at cell -->
+          <td class="actions">
+            <button data-id="${appt.id}" class="deleteBtn">Delete</button> <!-- delete button -->
+          </td>
+        `;
+
+        // append the constructed row to the table body
+        appointmentsBody.appendChild(tr); // add row to DOM
+      });
+
+      // add click listeners for delete buttons (event delegation alternative could be used)
+      const deleteButtons = document.querySelectorAll('.deleteBtn'); // select delete buttons
+      deleteButtons.forEach(function(btn) { // iterate each button
+        btn.addEventListener('click', function() { // on click
+          const id = Number(this.getAttribute('data-id')); // read id from data attribute
+          deleteAppointmentById(id); // call delete function
+        });
+      });
+    }
+
+    // helper to remove appointment by id and re-render
+    function deleteAppointmentById(id) { // id is numeric
+      const stored = localStorage.getItem('appointments'); // read existing
+      const appointments = stored ? JSON.parse(stored) : []; // parse JSON
+      const filtered = appointments.filter(a => a.id !== id); // remove matching id
+      localStorage.setItem('appointments', JSON.stringify(filtered)); // save updated array
+      renderAppointments(); // refresh table
+    }
+
+    // hook up back button to go to creation page
+    backBtn.addEventListener('click', function() { // on click
+      window.location.href = 'appointment.html'; // navigate to the form page
+    });
+
+    // clear all appointments after user confirms
+    clearBtn.addEventListener('click', function() { // on click
+      if (confirm('Are you sure you want to delete ALL appointments?')) { // confirmation
+        localStorage.removeItem('appointments'); // remove key from storage
+        renderAppointments(); // refresh UI
+      }
+    });
+
+    // small utility to escape HTML and prevent basic XSS when inserting user input into innerHTML
+    function escapeHtml(str) { // takes a string
+      if (!str) return ''; // return empty string for falsy values
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;'); // replace special chars with entities
+    }
+
+    // initial render when the page loads
+    renderAppointments(); // populate table on page load
+  </script>
+</body>
+</html>

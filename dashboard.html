@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <div id="output"></div>
+
+<script>
+const savedData = JSON.parse(localStorage.getItem("appointmentData"));
+
+if (savedData) {
+    document.getElementById("output").innerHTML = `
+        <p><strong>Name:</strong> ${savedData.name}</p>
+        <p><strong>Email:</strong> ${savedData.email}</p>
+        <p><strong>Address:</strong> ${savedData.address}</p>
+        <p><strong>Phone:</strong> ${savedData.phone}</p>
+    `;
+}
+</script>
+
+    
+</body>
+</html>
